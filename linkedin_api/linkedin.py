@@ -157,7 +157,8 @@ class Linkedin(object):
         if profile_languages:
             filters.append(f'profileLanguage->{"|".join(profile_languages)}')
         if nonprofit_interests:
-            filters.append(f'nonprofitInterest->{"|".join(nonprofit_interests)}')
+            filters.append(
+                f'nonprofitInterest->{"|".join(nonprofit_interests)}')
         if schools:
             filters.append(f'schools->{"|".join(schools)}')
         if title:
@@ -273,6 +274,11 @@ class Linkedin(object):
 
         return skills
 
+    def get_job_post(self, job_id):
+        res = self._fetch(f"/jobs/jobPostings/{job_id}")
+        data = res.json()
+        return data
+
     def get_profile(self, public_id=None, urn_id=None):
         """
         Return data for a single profile.
@@ -282,7 +288,8 @@ class Linkedin(object):
         """
         # NOTE this still works for now, but will probably eventually have to be converted to
         # https://www.linkedin.com/voyager/api/identity/profiles/ACoAAAKT9JQBsH7LwKaE9Myay9WcX8OVGuDq9Uw
-        res = self._fetch(f"/identity/profiles/{public_id or urn_id}/profileView")
+        res = self._fetch(
+            f"/identity/profiles/{public_id or urn_id}/profileView")
 
         data = res.json()
         if data and "status" in data and data["status"] != 200:
@@ -296,7 +303,8 @@ class Linkedin(object):
                 profile["displayPictureUrl"] = profile["miniProfile"]["picture"][
                     "com.linkedin.common.VectorImage"
                 ]["rootUrl"]
-            profile["profile_id"] = get_id_from_urn(profile["miniProfile"]["entityUrn"])
+            profile["profile_id"] = get_id_from_urn(
+                profile["miniProfile"]["entityUrn"])
 
             del profile["miniProfile"]
 
@@ -323,7 +331,8 @@ class Linkedin(object):
         # skills = [item["name"] for item in data["skillView"]["elements"]]
         # profile["skills"] = skills
 
-        profile["skills"] = self.get_profile_skills(public_id=public_id, urn_id=urn_id)
+        profile["skills"] = self.get_profile_skills(
+            public_id=public_id, urn_id=urn_id)
 
         # massage [education] data
         education = data["educationView"]["elements"]
@@ -469,12 +478,32 @@ class Linkedin(object):
             "numViews"
         ]
 
+    def get_legacy_school(self, legacy_school_id):
+        params = {
+            "decorationId": "com.linkedin.voyager.deco.organization.web.WebSchoolV2-1",
+            "q": "legacySchoolId",
+            "legacySchoolId": legacy_school_id,
+        }
+
+        res = self._fetch(f"/organization/schoolsV2?{urlencode(params)}")
+
+        data = res.json()
+
+        if data and "status" in data and data["status"] != 200:
+            self.logger.info("request failed: {}".format(data))
+            return {}
+
+        school = data["elements"][0]
+
+        return school
+
     def get_school(self, public_id):
         """
         Return data for a single school.
 
         [public_id] - public identifier i.e. uq
         """
+
         params = {
             "decorationId": "com.linkedin.voyager.deco.organization.web.WebFullCompanyMain-12",
             "q": "universalName",
@@ -549,7 +578,8 @@ class Linkedin(object):
         """
         Return the full conversation at a given [conversation_urn_id]
         """
-        res = self._fetch(f"/messaging/conversations/{conversation_urn_id}/events")
+        res = self._fetch(
+            f"/messaging/conversations/{conversation_urn_id}/events")
 
         return res.json()
 
