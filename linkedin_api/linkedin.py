@@ -292,19 +292,18 @@ class Linkedin(object):
             f"/identity/profiles/{public_id or urn_id}/profileView")
 
         data = res.json()
-        print("DATA", data)
         if data and "status" in data and data["status"] != 200:
-            self.logger.info("request failed: {}".format(data.get("message") or data))
+            self.logger.info("request failed: {}".format(data["message"]))
             return {}
 
         # massage [profile] data
-        profile = data["profile"]
+        profile=data["profile"]
         if "miniProfile" in profile:
             if "picture" in profile["miniProfile"]:
-                profile["displayPictureUrl"] = profile["miniProfile"]["picture"][
+                profile["displayPictureUrl"]=profile["miniProfile"]["picture"][
                     "com.linkedin.common.VectorImage"
                 ]["rootUrl"]
-            profile["profile_id"] = get_id_from_urn(
+            profile["profile_id"]=get_id_from_urn(
                 profile["miniProfile"]["entityUrn"])
 
             del profile["miniProfile"]
@@ -315,69 +314,69 @@ class Linkedin(object):
         del profile["showEducationOnProfileTopCard"]
 
         # massage [experience] data
-        experience = data["positionView"]["elements"]
+        experience=data["positionView"]["elements"]
         for item in experience:
             if "company" in item and "miniCompany" in item["company"]:
                 if "logo" in item["company"]["miniCompany"]:
-                    logo = item["company"]["miniCompany"]["logo"].get(
+                    logo=item["company"]["miniCompany"]["logo"].get(
                         "com.linkedin.common.VectorImage"
                     )
                     if logo:
-                        item["companyLogoUrl"] = logo["rootUrl"]
+                        item["companyLogoUrl"]=logo["rootUrl"]
                 del item["company"]["miniCompany"]
 
-        profile["experience"] = experience
+        profile["experience"]=experience
 
         # massage [skills] data
         # skills = [item["name"] for item in data["skillView"]["elements"]]
         # profile["skills"] = skills
 
-        profile["skills"] = self.get_profile_skills(
+        profile["skills"]=self.get_profile_skills(
             public_id=public_id, urn_id=urn_id)
 
         # massage [education] data
-        education = data["educationView"]["elements"]
+        education=data["educationView"]["elements"]
         for item in education:
             if "school" in item:
                 if "logo" in item["school"]:
-                    item["school"]["logoUrl"] = item["school"]["logo"][
+                    item["school"]["logoUrl"]=item["school"]["logo"][
                         "com.linkedin.common.VectorImage"
                     ]["rootUrl"]
                     del item["school"]["logo"]
 
-        profile["education"] = education
+        profile["education"]=education
 
         # massage [languages] data
-        languages = data["languageView"]["elements"]
+        languages=data["languageView"]["elements"]
         for item in languages:
             del item["entityUrn"]
-        profile["languages"] = languages
+        profile["languages"]=languages
 
         # massage [publications] data
-        publications = data["publicationView"]["elements"]
+        publications=data["publicationView"]["elements"]
         for item in publications:
             del item["entityUrn"]
             for author in item.get("authors", []):
                 del author["entityUrn"]
-        profile["publications"] = publications
+        profile["publications"]=publications
 
         # massage [certifications] data
-        certifications = data["certificationView"]["elements"]
+        certifications=data["certificationView"]["elements"]
         for item in certifications:
             del item["entityUrn"]
-        profile["certifications"] = certifications
+        profile["certifications"]=certifications
 
         # massage [volunteer] data
-        volunteer = data["volunteerExperienceView"]["elements"]
+        volunteer=data["volunteerExperienceView"]["elements"]
         for item in volunteer:
             del item["entityUrn"]
-        profile["volunteer"] = volunteer
+        profile["volunteer"]=volunteer
 
         # massage [honors] data
-        honors = data["honorView"]["elements"]
+        honors=data["honorView"]["elements"]
         for item in honors:
             del item["entityUrn"]
-        profile["honors"] = honors
+        profile["honors"]=honors
 
         return profile
 
@@ -396,7 +395,7 @@ class Linkedin(object):
         [public_id] - public identifier ie - microsoft
         [urn_id] - id provided by the related URN
         """
-        params = {
+        params={
             "companyUniversalName": {public_id or urn_id},
             "q": "companyFeedByUniversalName",
             "moduleKey": "member-share",
@@ -404,9 +403,9 @@ class Linkedin(object):
             "start": len(results),
         }
 
-        res = self._fetch(f"/feed/updates", params=params)
+        res=self._fetch(f"/feed/updates", params=params)
 
-        data = res.json()
+        data=res.json()
 
         if (
             len(data["elements"]) == 0
@@ -434,7 +433,7 @@ class Linkedin(object):
         [public_id] - public identifier i.e. tom-quirk-1928345
         [urn_id] - id provided by the related URN
         """
-        params = {
+        params={
             "profileId": {public_id or urn_id},
             "q": "memberShareFeed",
             "moduleKey": "member-share",
@@ -442,9 +441,9 @@ class Linkedin(object):
             "start": len(results),
         }
 
-        res = self._fetch(f"/feed/updates", params=params)
+        res=self._fetch(f"/feed/updates", params=params)
 
-        data = res.json()
+        data=res.json()
 
         if (
             len(data["elements"]) == 0
@@ -467,9 +466,9 @@ class Linkedin(object):
         """
         Get profile view statistics, including chart data.
         """
-        res = self._fetch(f"/identity/wvmpCards")
+        res=self._fetch(f"/identity/wvmpCards")
 
-        data = res.json()
+        data=res.json()
 
         return data["elements"][0]["value"][
             "com.linkedin.voyager.identity.me.wvmpOverview.WvmpViewersCard"
@@ -480,21 +479,21 @@ class Linkedin(object):
         ]
 
     def get_legacy_school(self, legacy_school_id):
-        params = {
+        params={
             "decorationId": "com.linkedin.voyager.deco.organization.web.WebSchoolV2-1",
             "q": "legacySchoolId",
             "legacySchoolId": legacy_school_id,
         }
 
-        res = self._fetch(f"/organization/schoolsV2?{urlencode(params)}")
+        res=self._fetch(f"/organization/schoolsV2?{urlencode(params)}")
 
-        data = res.json()
+        data=res.json()
 
         if data and "status" in data and data["status"] != 200:
             self.logger.info("request failed: {}".format(data))
             return {}
 
-        school = data["elements"][0]
+        school=data["elements"][0]
 
         return school
 
@@ -505,21 +504,21 @@ class Linkedin(object):
         [public_id] - public identifier i.e. uq
         """
 
-        params = {
+        params={
             "decorationId": "com.linkedin.voyager.deco.organization.web.WebFullCompanyMain-12",
             "q": "universalName",
             "universalName": public_id,
         }
 
-        res = self._fetch(f"/organization/companies?{urlencode(params)}")
+        res=self._fetch(f"/organization/companies?{urlencode(params)}")
 
-        data = res.json()
+        data=res.json()
 
         if data and "status" in data and data["status"] != 200:
             self.logger.info("request failed: {}".format(data))
             return {}
 
-        school = data["elements"][0]
+        school=data["elements"][0]
 
         return school
 
@@ -529,21 +528,21 @@ class Linkedin(object):
 
         [public_id] - public identifier i.e. univeristy-of-queensland
         """
-        params = {
+        params={
             "decorationId": "com.linkedin.voyager.deco.organization.web.WebFullCompanyMain-12",
             "q": "universalName",
             "universalName": public_id,
         }
 
-        res = self._fetch(f"/organization/companies", params=params)
+        res=self._fetch(f"/organization/companies", params=params)
 
-        data = res.json()
+        data=res.json()
 
         if data and "status" in data and data["status"] != 200:
             self.logger.info("request failed: {}".format(data["message"]))
             return {}
 
-        company = data["elements"][0]
+        company=data["elements"][0]
 
         return company
 
@@ -553,15 +552,15 @@ class Linkedin(object):
         """
         # passing `params` doesn't work properly, think it's to do with List().
         # Might be a bug in `requests`?
-        res = self._fetch(
+        res=self._fetch(
             f"/messaging/conversations?\
             keyVersion=LEGACY_INBOX&q=participants&recipients=List({profile_urn_id})"
         )
 
-        data = res.json()
+        data=res.json()
 
-        item = data["elements"][0]
-        item["id"] = get_id_from_urn(item["entityUrn"])
+        item=data["elements"][0]
+        item["id"]=get_id_from_urn(item["entityUrn"])
 
         return item
 
@@ -569,9 +568,9 @@ class Linkedin(object):
         """
         Return list of conversations the user is in.
         """
-        params = {"keyVersion": "LEGACY_INBOX"}
+        params={"keyVersion": "LEGACY_INBOX"}
 
-        res = self._fetch(f"/messaging/conversations", params=params)
+        res=self._fetch(f"/messaging/conversations", params=params)
 
         return res.json()
 
@@ -579,7 +578,7 @@ class Linkedin(object):
         """
         Return the full conversation at a given [conversation_urn_id]
         """
-        res = self._fetch(
+        res=self._fetch(
             f"/messaging/conversations/{conversation_urn_id}/events")
 
         return res.json()
@@ -590,12 +589,12 @@ class Linkedin(object):
 
         Recipients: List of profile urn id's
         """
-        params = {"action": "create"}
+        params={"action": "create"}
 
         if not (conversation_urn_id or recipients) and not message_body:
             return True
 
-        message_event = {
+        message_event={
             "eventCreate": {
                 "value": {
                     "com.linkedin.voyager.messaging.create.MessageCreate": {
@@ -609,19 +608,19 @@ class Linkedin(object):
         }
 
         if conversation_urn_id and not recipients:
-            res = self._post(
+            res=self._post(
                 f"/messaging/conversations/{conversation_urn_id}/events",
                 params=params,
                 data=json.dumps(message_event),
             )
         elif recipients and not conversation_urn_id:
-            message_event["recipients"] = recipients
-            message_event["subtype"] = "MEMBER_TO_MEMBER"
-            payload = {
+            message_event["recipients"]=recipients
+            message_event["subtype"]="MEMBER_TO_MEMBER"
+            payload={
                 "keyVersion": "LEGACY_INBOX",
                 "conversationCreate": message_event,
             }
-            res = self._post(
+            res=self._post(
                 f"/messaging/conversations", params=params, data=json.dumps(payload)
             )
 
@@ -631,9 +630,9 @@ class Linkedin(object):
         """
         Send seen to a given conversation. If error, return True.
         """
-        payload = json.dumps({"patch": {"$set": {"read": True}}})
+        payload=json.dumps({"patch": {"$set": {"read": True}}})
 
-        res = self._post(
+        res=self._post(
             f"/messaging/conversations/{conversation_urn_id}", data=payload
         )
 
@@ -647,9 +646,9 @@ class Linkedin(object):
             random.randint(0, 1)
         )  # sleep a random duration to try and evade suspention
 
-        res = self._fetch(f"/me")
+        res=self._fetch(f"/me")
 
-        data = res.json()
+        data=res.json()
 
         return data
 
@@ -657,21 +656,21 @@ class Linkedin(object):
         """
         Return list of new invites
         """
-        params = {
+        params={
             "start": start,
             "count": limit,
             "includeInsights": True,
             "q": "receivedInvitation",
         }
 
-        res = self._fetch(
+        res=self._fetch(
             f"{self.client.API_BASE_URL}/relationships/invitationViews", params=params
         )
 
         if res.status_code != 200:
             return []
 
-        response_payload = res.json()
+        response_payload=res.json()
         return [element["invitation"] for element in response_payload["elements"]]
 
     def reply_invitation(
@@ -684,9 +683,9 @@ class Linkedin(object):
         @Param: action: "accept" or "ignore"
         Returns True if sucess, False otherwise
         """
-        invitation_id = get_id_from_urn(invitation_entity_urn)
-        params = {"action": action}
-        payload = json.dumps(
+        invitation_id=get_id_from_urn(invitation_entity_urn)
+        params={"action": action}
+        payload=json.dumps(
             {
                 "invitationId": invitation_id,
                 "invitationSharedSecret": invitation_shared_secret,
@@ -694,7 +693,7 @@ class Linkedin(object):
             }
         )
 
-        res = self._post(
+        res=self._post(
             f"{self.client.API_BASE_URL}/relationships/invitations/{invitation_id}",
             params=params,
             data=payload,
@@ -723,7 +722,7 @@ class Linkedin(object):
     #     return res.status_code != 201
 
     def remove_connection(self, public_profile_id):
-        res = self._post(
+        res=self._post(
             f"/identity/profiles/{public_profile_id}/profileActions?action=disconnect",
             headers={"accept": "application/vnd.linkedin.normalized+json+2.1"},
         )
@@ -740,34 +739,34 @@ class Linkedin(object):
     #     return res.status_code != 200
 
     def get_profile_privacy_settings(self, public_profile_id):
-        res = self._fetch(
+        res=self._fetch(
             f"/identity/profiles/{public_profile_id}/privacySettings",
             headers={"accept": "application/vnd.linkedin.normalized+json+2.1"},
         )
         if res.status_code != 200:
             return {}
 
-        data = res.json()
+        data=res.json()
         return data.get("data", {})
 
     def get_profile_member_badges(self, public_profile_id):
-        res = self._fetch(
+        res=self._fetch(
             f"/identity/profiles/{public_profile_id}/memberBadges",
             headers={"accept": "application/vnd.linkedin.normalized+json+2.1"},
         )
         if res.status_code != 200:
             return {}
 
-        data = res.json()
+        data=res.json()
         return data.get("data", {})
 
     def get_profile_network_info(self, public_profile_id):
-        res = self._fetch(
+        res=self._fetch(
             f"/identity/profiles/{public_profile_id}/networkinfo",
             headers={"accept": "application/vnd.linkedin.normalized+json+2.1"},
         )
         if res.status_code != 200:
             return {}
 
-        data = res.json()
+        data=res.json()
         return data.get("data", {})
