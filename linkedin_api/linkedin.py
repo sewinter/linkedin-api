@@ -292,8 +292,9 @@ class Linkedin(object):
             f"/identity/profiles/{public_id or urn_id}/profileView")
 
         data = res.json()
+        print("DATA", data)
         if data and "status" in data and data["status"] != 200:
-            self.logger.info("request failed: {}".format(data["message"]))
+            self.logger.info("request failed: {}".format(data.get("message") or data))
             return {}
 
         # massage [profile] data
